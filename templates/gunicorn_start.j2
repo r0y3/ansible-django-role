@@ -1,0 +1,37 @@
+#!/bin/bash
+
+NAME="{{ app_proj_name }}"                                   # Name of the application
+DJANGODIR={{ app_backend_path }}                             # Django project directory
+USER={{ app_user }}                                          # the user to run as
+GROUP={{ app_user }}                                         # the group to run as
+NUM_WORKERS=3                                                       # how many worker processes should Gunicorn spawn
+DJANGO_SETTINGS_MODULE={{ app_settings }}                # which settings file should Django use
+DJANGO_WSGI_MODULE=config.wsgi                  # WSGI module name
+
+echo "Starting $NAME as `whoami`"
+
+# Activate the virtual environment
+cd $DJANGODIR
+source {{ app_venv_path }}/bin/activate
+export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
+export PYTHONPATH=$DJANGODIR:$PYTHONPATH
+
+export STREAMLINE_SECRET_KEY="{{ secret_key }}"
+export STREAMLINE_MYSQL_USER=root
+export STREAMLINE_MYSQL_PASSWORD={{ mysql_root_password }}
+export STREAMLINE_EMAIL_HOST_USER="{{ smtp_host_user }}"
+export STREAMLINE_EMAIL_HOST_PASSWORD="{{ smtp_host_password }}"
+
+# Create the run directory if it doesn't exist
+RUNDIR=$(dirname $SOCKFILE)
+test -d $RUNDIR || mkdir -p $RUNDIR
+
+# Start your Django Unicorn
+# Programs meant to be run under supervisor should not daemonize themselves (do not use --daemon)
+exec gunicorn ${DJANGO_WSGI_MODULE}:application \
+  --name $NAME \
+  --workers $NUM_WORKERS \
+  --user=$USER --group=$GROUP \
+  --bind=127.0.0.1:{{ app_gunicorn_port }} \
+  --log-level=debug \
+  --log-file=-

@@ -1,0 +1,6 @@
+---
+# handlers file for playbook/roles/django
+- name: restart supervisor
+  supervisorctl: name=gunicorn_{{ app_name }} state=restarted
+  become: True
+  become_user: root

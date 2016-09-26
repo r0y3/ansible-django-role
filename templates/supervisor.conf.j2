@@ -1,0 +1,8 @@
+[program:gunicorn_{{ app_proj_name }}]
+command={{ app_backend_path }}/bin/gunicorn_start
+stdout_logfile={{ app_backend_path }}/logs/gunicorn_supervisor.log
+user={{ app_user }}
+autostart=true
+autorestart=true
+redirect_stderr=true
+environment=LANG="{{ locale }}",LC_ALL="{{ locale }}",LC_LANG="{{ locale }}"

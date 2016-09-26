@@ -1,0 +1,119 @@
+- name: copy git key file
+  copy:
+    src: "{{ git_key_file_src }}"
+    dest: "{{ git_key_file }}"
+    owner: "{{ git_key_owner }}"
+    mode: 0600
+  tags:
+    - git
+
+- name: checkout out the repository on the host
+  git:
+    repo: "{{ app_repo_url }}"
+    dest: "{{ app_proj_path }}"
+    accept_hostkey: yes
+    key_file: "{{ git_key_file }}"
+    force: yes
+    version: "{{ app_git_branch }}"
+  tags:
+    - git
+
+- name: install required python packages
+  pip: name={{ item }} virtualenv={{ app_venv_path }} virtualenv_python=python3.4
+  with_items:
+    - gunicorn
+    - setproctitle
+
+- name: install requirements.txt
+  pip: >
+    requirements={{ app_reqs_path }}
+    virtualenv={{ app_venv_path }}
+    virtualenv_python=python3.4
+
+- name: ensure media path exists
+  file: path={{ app_backend_path }}/media/ state=directory owner={{ ansible_user }}
+
+- name: ensure static path exists
+  file: path={{ app_backend_path }}/static/ state=directory owner={{ ansible_user }}
+
+- name: make manage.py executable
+  file: path="{{ app_backend_path }}/manage.py" mode="u+x"
+
+- name: sync the database, apply migrations, collect static content
+  environment:
+    STREAMLINE_SECRET_KEY: "{{ secret_key }}"
+    STREAMLINE_MYSQL_USER: root
+    STREAMLINE_MYSQL_PASSWORD: "{{ mysql_root_password }}"
+    STREAMLINE_EMAIL_HOST_USER: "{{ smtp_host_user }}"
+    STREAMLINE_EMAIL_HOST_PASSWORD: "{{ smtp_host_password }}"
+  django_manage:
+    command: "{{ item }}"
+    app_path: "{{ app_backend_path }}"
+    virtualenv: "{{ app_venv_path }}"
+    settings: "{{ app_app_settings }}"
+  with_items:
+    - migrate
+    - collectstatic
+
+- name: set admin password
+  script: scripts/setadmin.py
+  environment:
+    PATH: "{{ app_venv_path }}/bin"
+    PROJECT_DIR: "{{ app_backend_path }}"
+    ADMIN_PASSWORD: "{{ admin_pass }}"
+    STREAMLINE_SECRET_KEY: "{{ secret_key }}"
+    STREAMLINE_MYSQL_USER: root
+    STREAMLINE_MYSQL_PASSWORD: "{{ mysql_root_password }}"
+    STREAMLINE_EMAIL_HOST_USER: "{{ smtp_host_user }}"
+    STREAMLINE_EMAIL_HOST_PASSWORD: "{{ smtp_host_password }}"
+
+- name: load fixtures
+  django_manage:
+    command: loaddata
+    app_path: "{{ app_backend_path }}"
+    fixtures: "{{ app_fixtures }}"
+    settings: "{{ app_app_settings }}"
+    virtualenv: "{{ app_venv_path }}"
+  environment:
+    STREAMLINE_SECRET_KEY: "{{ secret_key }}"
+    STREAMLINE_MYSQL_USER: root
+    STREAMLINE_MYSQL_PASSWORD: "{{ mysql_root_password }}"
+    STREAMLINE_EMAIL_HOST_USER: "{{ smtp_host_user }}"
+    STREAMLINE_EMAIL_HOST_PASSWORD: "{{ smtp_host_password }}"
+  when: load_fixtures
+
+- name: set project directory permission
+  file: path={{ app_proj_path }}
+        state=directory
+        owner={{ app_user }}
+        recurse=yes
+
+- name: set wsgi application
+  template: src=django.wsgi.j2 dest="{{ app_backend_path }}/config/wsgi/{{ app_name }}.wsgi"
+
+- name: ensure bin path exists
+  file: path={{ app_backend_path }}/bin/ state=directory
+
+- name: set gunicorn start script
+  template: src=gunicorn_start.j2 dest="{{ app_backend_path }}/bin/gunicorn_start"
+
+- name: ensure logs path exists
+  file: path={{ app_backend_path }}/logs/ state=directory
+
+- name: set gunicorn start script
+  template: src=gunicorn_start.j2 dest="{{ app_backend_path }}/bin/gunicorn_start"
+
+- name: make gunicorn start script executable
+  file: path="{{ app_backend_path }}/bin/gunicorn_start" mode="u+x"
+
+- name: set the gunicorn config file
+  template: src=supervisor.conf.j2 dest=/etc/supervisor/conf.d/{{ app_name }}.conf
+  become: True
+  become_user: root
+  notify: restart supervisor
+
+- name: ensure config path exists
+  file: path={{ app_conf_path }} state=directory
+  become: True
+  become_user: root
+  when: tls_enabled
