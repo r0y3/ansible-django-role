@@ -49,7 +49,6 @@ Example Playbook
          proj_dirname: project
          proj_path: "{{ venv_path }}/{{ proj_dirname }}"
          reqs_path: "{{ proj_path }}/requirements/base.txt"
-         conf_path: /etc/nginx/conf
          python: "{{ venv_path }}/bin/python"
          manage: "{{ python }} {{ proj_path }}/manage.py"
          gunicorn_port: 9000
