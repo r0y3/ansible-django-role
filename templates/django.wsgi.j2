@@ -10,8 +10,8 @@ https://docs.djangoproject.com/en/1.9/howto/deployment/wsgi/
 import os, sys, site
 
 prev_sys_path = list(sys.path)
-site.addsitedir('{{ app_venv_site_packages }}')
-sys.path.append('{{ app_backend_path }}')
+site.addsitedir('{{ venv_site_packages }}')
+sys.path.append('{{ backend_path }}')
 
 # reorder sys.path so new directories from the addsitedir show up first
 new_sys_path = [p for p in sys.path if p not in prev_sys_path]
