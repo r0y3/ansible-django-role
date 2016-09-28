@@ -1,9 +1,9 @@
 #!/bin/bash
 
-NAME="{{ app_proj_name }}"                                   # Name of the application
-DJANGODIR={{ app_backend_path }}                             # Django project directory
-USER={{ app_user }}                                          # the user to run as
-GROUP={{ app_user }}                                         # the group to run as
+NAME="{{ proj_name }}"                                   # Name of the application
+DJANGODIR={{ backend_path }}                             # Django project directory
+USER={{ user }}                                          # the user to run as
+GROUP={{ user }}                                         # the group to run as
 NUM_WORKERS=3                                                       # how many worker processes should Gunicorn spawn
 DJANGO_SETTINGS_MODULE={{ app_settings }}                # which settings file should Django use
 DJANGO_WSGI_MODULE=config.wsgi                  # WSGI module name
@@ -12,7 +12,7 @@ echo "Starting $NAME as `whoami`"
 
 # Activate the virtual environment
 cd $DJANGODIR
-source {{ app_venv_path }}/bin/activate
+source {{ venv_path }}/bin/activate
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 
@@ -32,6 +32,6 @@ exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --name $NAME \
   --workers $NUM_WORKERS \
   --user=$USER --group=$GROUP \
-  --bind=127.0.0.1:{{ app_gunicorn_port }} \
+  --bind=127.0.0.1:{{ gunicorn_port }} \
   --log-level=debug \
   --log-file=-
