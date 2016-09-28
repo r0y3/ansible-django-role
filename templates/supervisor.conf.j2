@@ -1,7 +1,7 @@
-[program:gunicorn_{{ app_proj_name }}]
+[program:gunicorn_{{ proj_name }}]
 command={{ app_backend_path }}/bin/gunicorn_start
-stdout_logfile={{ app_backend_path }}/logs/gunicorn_supervisor.log
-user={{ app_user }}
+stdout_logfile={{ backend_path }}/logs/gunicorn_supervisor.log
+user={{ user }}
 autostart=true
 autorestart=true
 redirect_stderr=true
