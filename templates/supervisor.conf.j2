@@ -1,5 +1,5 @@
 [program:gunicorn_{{ proj_name }}]
-command={{ app_backend_path }}/bin/gunicorn_start
+command={{ backend_path }}/bin/gunicorn_start
 stdout_logfile={{ backend_path }}/logs/gunicorn_supervisor.log
 user={{ user }}
 autostart=true
