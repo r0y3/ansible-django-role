@@ -40,6 +40,7 @@ Example Playbook
       become_user: root
       vars:
          proj_name: projectzero
+         locale: en_US.UTF-8
 
          user: "{{ ansible_ssh_user }}"
          venv_path: "{{ venv_home }}/{{ proj_name }}"
