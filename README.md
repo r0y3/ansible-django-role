@@ -11,7 +11,21 @@ Any pre-requisites that may not be covered by Ansible itself or the role should 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+```git_key_file_src``` - Local ssh key
+
+```git_key_file``` - Remote ssh key location including the filename
+
+```git_key_owner``` - The remote user who is going to own the ssh key.
+
+```app_repo_url``` - Your django application repository.
+
+```app_proj_path``` - Django application base directory.
+
+```app_git_branch``` - The repository branch to be deployed.
+
+```app_venv_path``` - virtualenv directory.
+
+```app_reqs_path``` - Path to your requirements(.txt) file.
 
 Dependencies
 ------------
