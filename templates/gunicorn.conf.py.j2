@@ -4,4 +4,4 @@ import multiprocessing
 bind = "127.0.0.1:{{ app_gunicorn_port }}"
 workers = multiprocessing.cpu_count() * 2 + 1
 loglevel = "error"
-proc_name = "{{ app_proj_name }}"
+proc_name = "{{ proj_name }}"
