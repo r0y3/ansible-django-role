@@ -17,15 +17,15 @@ Role Variables
 
 ```git_key_owner``` - The remote user who is going to own the ssh key.
 
-```app_repo_url``` - Your django application repository.
+```repo_url``` - Your django application repository.
 
-```app_proj_path``` - Django application base directory.
+```proj_path``` - Django application base directory.
 
-```app_git_branch``` - The repository branch to be deployed.
+```git_branch``` - The repository branch to be deployed.
 
-```app_venv_path``` - virtualenv directory.
+```venv_path``` - virtualenv directory.
 
-```app_reqs_path``` - Path to your requirements(.txt) file.
+```reqs_path``` - Path to your requirements(.txt) file.
 
 Dependencies
 ------------
@@ -35,11 +35,34 @@ A list of other roles hosted on Galaxy should go here, plus any details in regar
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+    - hosts: staging
+      become: True
+      become_user: root
+      vars:
+         proj_name: projectzero
 
-    - hosts: servers
+         user: "{{ ansible_ssh_user }}"
+         venv_path: "{{ venv_home }}/{{ proj_name }}"
+         venv_site_packages: "{{ venv_path }}/lib/python3.4/site-packages"
+         repo_url: git@github.com:r0y3/projectzero.git
+         proj_dirname: project
+         proj_path: "{{ venv_path }}/{{ proj_dirname }}"
+         reqs_path: "{{ proj_path }}/requirements/base.txt"
+         conf_path: /etc/nginx/conf
+         python: "{{ venv_path }}/bin/python"
+         manage: "{{ python }} {{ proj_path }}/manage.py"
+         gunicorn_port: 9000
+         fixtures: "categories.yaml tags.yaml"
+         app_settings: "config.settings.staging"
+         frontend_path: "{{ proj_path }}/projectzero-webapp"
+         backend_path: "{{ proj_path }}/projectzero"
+
+         git_key_file_src: /home/r0y3/.ssh/id_rsa
+         git_key_file: /home/ubuntu/.ssh/id_rsa_r0y3.github
+         git_key_owner: ubuntu
+
       roles:
-         - { role: username.rolename, x: 42 }
+         - { role: django }
 
 License
 -------
